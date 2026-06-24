@@ -1,0 +1,356 @@
+// Kurchu CRM — Prisma Database Schema
+// =====================================
+// SQLite with all 12 models for Phase 1
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ─────────────────────────────────────
+// USERS & AUTHENTICATION
+// ─────────────────────────────────────
+
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  password    String
+  firstName   String
+  lastName    String
+  phone       String?
+  role        String    @default("SALES_AGENT")
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id])
+
+  // Permissions & Status
+  permissions String    @default("[]")
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+
+  // Password Reset
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+
+  // Relations
+  createdLeads  Lead[]    @relation("createdBy")
+  assignedLeads Lead[]    @relation("assignedTo")
+  notes         Note[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([email])
+}
+
+// ─────────────────────────────────────
+// COMPANY
+// ─────────────────────────────────────
+
+model Company {
+  id       String  @id @default(cuid())
+  name     String
+  email    String  @unique
+  phone    String?
+  website  String?
+  address  String?
+  city     String?
+  state    String?
+  country  String?
+  zipCode  String?
+
+  // Settings
+  currency String @default("USD")
+  timezone String @default("UTC")
+
+  // Relations
+  users       User[]
+  leads       Lead[]
+  bookings    Booking[]
+  services    Service[]
+  leadSources LeadSource[]
+  alerts      Alert[]
+  itineraries Itinerary[]
+  documents   Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────
+// LEAD SOURCES
+// ─────────────────────────────────────
+
+model LeadSource {
+  id        String  @id @default(cuid())
+  name      String
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  leads Lead[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+// ─────────────────────────────────────
+// SERVICES / PACKAGES
+// ─────────────────────────────────────
+
+model Service {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id])
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+// ─────────────────────────────────────
+// LEADS
+// ─────────────────────────────────────
+
+model Lead {
+  id        String  @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  company   String?
+
+  // Pipeline
+  stage    String     @default("NEW")
+  source   LeadSource @relation(fields: [sourceId], references: [id])
+  sourceId String
+
+  // Ownership
+  createdById  String
+  createdBy    User @relation("createdBy", fields: [createdById], references: [id])
+  assignedToId String
+  assignedTo   User @relation("assignedTo", fields: [assignedToId], references: [id])
+
+  companyId  String
+  companyRef Company @relation(fields: [companyId], references: [id])
+
+  // Relations
+  notes       Note[]
+  followUps   FollowUp[]
+  bookings    Booking[]
+  itineraries Itinerary[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([stage])
+  @@index([sourceId])
+  @@index([assignedToId])
+}
+
+// ─────────────────────────────────────
+// NOTES
+// ─────────────────────────────────────
+
+model Note {
+  id      String @id @default(cuid())
+  content String
+  leadId  String
+  lead    Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([leadId])
+  @@index([createdById])
+}
+
+// ─────────────────────────────────────
+// FOLLOW-UPS
+// ─────────────────────────────────────
+
+model FollowUp {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  scheduledAt DateTime
+  callNotes   String?
+  isCompleted Boolean  @default(false)
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([leadId])
+  @@index([scheduledAt])
+  @@index([isCompleted])
+}
+
+// ─────────────────────────────────────
+// BOOKINGS
+// ─────────────────────────────────────
+
+model Booking {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id])
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  status         String @default("PENDING")
+  bookingDate    DateTime
+  completionDate DateTime?
+
+  amount          Float
+  collectedAmount Float @default(0)
+  pendingAmount   Float
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  payments  Payment[]
+  invoice   Invoice?
+  itinerary Itinerary?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([status])
+  @@index([leadId])
+}
+
+// ─────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────
+
+model Payment {
+  id        String  @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  amount    Float
+  method    String
+  paidAt    DateTime
+  reference String?
+
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
+}
+
+// ─────────────────────────────────────
+// INVOICES
+// ─────────────────────────────────────
+
+model Invoice {
+  id        String @id @default(cuid())
+  number    String @unique
+  bookingId String @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  status String @default("DRAFT")
+  amount Float
+
+  issuedAt DateTime @default(now())
+  dueDate  DateTime
+  paidAt   DateTime?
+
+  pdfUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ─────────────────────────────────────
+// ALERTS
+// ─────────────────────────────────────
+
+model Alert {
+  id       String  @id @default(cuid())
+  type     String
+  title    String
+  message  String
+  severity String @default("INFO")
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  leadId    String?
+  bookingId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([isRead])
+}
+
+// ─────────────────────────────────────
+// ITINERARIES
+// ─────────────────────────────────────
+
+model Itinerary {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  bookingId   String?  @unique
+  booking     Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([leadId])
+}
+
+// ─────────────────────────────────────
+// DOCUMENTS
+// ─────────────────────────────────────
+
+model Document {
+  id        String   @id @default(cuid())
+  name      String
+  size      String
+  url       String
+  type      String   // e.g. "PDF", "ZIP", "IMAGE", "FOLDER"
+  
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
