@@ -39,6 +39,7 @@ model User {
   createdLeads  Lead[]    @relation("createdBy")
   assignedLeads Lead[]    @relation("assignedTo")
   notes         Note[]
+  notificationSetting NotificationSetting?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -353,4 +354,28 @@ model Document {
   updatedAt DateTime @updatedAt
 
   @@index([companyId])
+}
+
+// ─────────────────────────────────────
+// NOTIFICATION SETTINGS
+// ─────────────────────────────────────
+
+model NotificationSetting {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emailLeads     Boolean  @default(true)
+  emailBookings  Boolean  @default(true)
+  emailSystem    Boolean  @default(false)
+
+  pushLeads      Boolean  @default(true)
+  pushBookings   Boolean  @default(true)
+  pushSystem     Boolean  @default(true)
+
+  smsLeads       Boolean  @default(false)
+  smsBookings    Boolean  @default(false)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

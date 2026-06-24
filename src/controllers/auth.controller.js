@@ -98,6 +98,28 @@ class AuthController {
       successResponse({ user }, 'Profile updated')
     );
   }
+
+  /**
+   * GET /api/auth/notification-settings
+   */
+  async getNotificationSettings(req, res) {
+    const settings = await authService.getNotificationSettings(req.userId);
+
+    res.status(200).json(
+      successResponse(settings, 'Notification settings retrieved')
+    );
+  }
+
+  /**
+   * PUT /api/auth/notification-settings
+   */
+  async updateNotificationSettings(req, res) {
+    const settings = await authService.updateNotificationSettings(req.userId, req.validatedBody);
+
+    res.status(200).json(
+      successResponse(settings, 'Notification settings updated')
+    );
+  }
 }
 
 module.exports = new AuthController();

@@ -18,6 +18,7 @@ const {
   resetPasswordSchema,
   refreshTokenSchema,
 } = require('../schemas/auth.schema');
+const { updateNotificationSettingsSchema } = require('../schemas/notification-setting.schema');
 
 const router = Router();
 
@@ -74,6 +75,19 @@ router.patch(
   authenticate,
   validateBody(updateProfileSchema),
   authController.updateProfile.bind(authController)
+);
+
+router.get(
+  '/notification-settings',
+  authenticate,
+  authController.getNotificationSettings.bind(authController)
+);
+
+router.put(
+  '/notification-settings',
+  authenticate,
+  validateBody(updateNotificationSettingsSchema),
+  authController.updateNotificationSettings.bind(authController)
 );
 
 module.exports = router;

@@ -18,6 +18,7 @@ const bookingRoutes = require('./booking.routes');
 const itineraryRoutes = require('./itinerary.routes');
 const invoiceRoutes = require('./invoice.routes');
 const documentRoutes = require('./document.routes');
+const searchRoutes = require('./search.routes');
 
 const router = express.Router();
 
@@ -33,6 +34,7 @@ router.use('/bookings', bookingRoutes);
 router.use('/itineraries', itineraryRoutes);
 router.use('/invoices', invoiceRoutes);
 router.use('/documents', documentRoutes);
+router.use('/search', searchRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

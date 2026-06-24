@@ -196,6 +196,40 @@ class AuthService {
   }
 
   /**
+   * Get user's notification settings.
+   * @param {string} userId
+   */
+  async getNotificationSettings(userId) {
+    const { prisma } = require('../config/database');
+    let settings = await prisma.notificationSetting.findUnique({
+      where: { userId },
+    });
+    if (!settings) {
+      settings = await prisma.notificationSetting.create({
+        data: { userId },
+      });
+    }
+    return settings;
+  }
+
+  /**
+   * Update or create user's notification settings.
+   * @param {string} userId
+   * @param {object} data
+   */
+  async updateNotificationSettings(userId, data) {
+    const { prisma } = require('../config/database');
+    return prisma.notificationSetting.upsert({
+      where: { userId },
+      update: data,
+      create: {
+        userId,
+        ...data,
+      },
+    });
+  }
+
+  /**
    * Remove sensitive fields from user object.
    * @param {object} user
    * @returns {object}
