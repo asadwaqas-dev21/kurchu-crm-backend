@@ -12,6 +12,7 @@
     "test:integration": "jest tests/integration --forceExit --detectOpenHandles",
     "test:coverage": "jest --coverage --forceExit --detectOpenHandles",
     "prisma:generate": "npx prisma generate --schema=src/database/prisma/schema.prisma",
+    "postinstall": "prisma generate --schema=src/database/prisma/schema.prisma",
     "prisma:migrate": "npx prisma migrate dev --schema=src/database/prisma/schema.prisma",
     "prisma:migrate:prod": "npx prisma migrate deploy --schema=src/database/prisma/schema.prisma",
     "prisma:seed": "node src/database/seeds/seed.js",
@@ -19,7 +20,13 @@
     "lint": "eslint src/ --ext .js",
     "lint:fix": "eslint src/ --ext .js --fix"
   },
-  "keywords": ["crm", "sales", "dashboard", "api", "express"],
+  "keywords": [
+    "crm",
+    "sales",
+    "dashboard",
+    "api",
+    "express"
+  ],
   "author": "Kurchu Team",
   "license": "MIT",
   "dependencies": {
@@ -58,8 +65,15 @@
     ]
   },
   "nodemonConfig": {
-    "watch": ["src/", "server.js"],
+    "watch": [
+      "src/",
+      "server.js"
+    ],
     "ext": "js,json",
-    "ignore": ["tests/", "node_modules/", "logs/"]
+    "ignore": [
+      "tests/",
+      "node_modules/",
+      "logs/"
+    ]
   }
 }
