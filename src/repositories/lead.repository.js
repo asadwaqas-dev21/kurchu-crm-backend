@@ -151,6 +151,32 @@ class LeadRepository {
    * @param {string} companyId
    */
   async delete(id, companyId) {
+    const bookings = await prisma.booking.findMany({
+      where: { leadId: id },
+    });
+    const bookingIds = bookings.map((b) => b.id);
+
+    if (bookingIds.length > 0) {
+      await prisma.invoice.deleteMany({
+        where: { bookingId: { in: bookingIds } },
+      });
+      await prisma.payment.deleteMany({
+        where: { bookingId: { in: bookingIds } },
+      });
+      await prisma.booking.deleteMany({
+        where: { id: { in: bookingIds } },
+      });
+    }
+
+    await prisma.alert.deleteMany({
+      where: {
+        OR: [
+          { leadId: id },
+          { bookingId: { in: bookingIds } },
+        ],
+      },
+    });
+
     return prisma.lead.deleteMany({
       where: { id, companyId },
     });

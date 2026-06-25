@@ -19,7 +19,9 @@ const { setupDashboardHandlers } = require('./dashboard.socket');
 const initializeSocket = (httpServer) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+      origin: process.env.NODE_ENV === 'development'
+        ? (origin, callback) => callback(null, true)
+        : (process.env.FRONTEND_URL || 'http://localhost:3000').split(','),
       credentials: true,
     },
     pingTimeout: 60000,

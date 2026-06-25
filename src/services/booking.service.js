@@ -77,6 +77,8 @@ class BookingService {
 
   async deleteBooking(id, companyId) {
     await this.getBookingById(id, companyId);
+    await prisma.invoice.deleteMany({ where: { bookingId: id } });
+    await prisma.alert.deleteMany({ where: { bookingId: id } });
     await prisma.booking.delete({ where: { id } });
     return { success: true };
   }

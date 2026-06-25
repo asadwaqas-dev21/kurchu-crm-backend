@@ -60,8 +60,8 @@ describe('DashboardService', () => {
 
       const metrics = await dashboardService.getMetrics(companyId);
 
-      expect(metrics.conversionRate).toBe(0);
-      expect(metrics.averageDealValue).toBe(0);
+      expect(metrics.conversionRate).toBe('0.0');
+      expect(metrics.averageDealValue).toBe('0.00');
     });
   });
 

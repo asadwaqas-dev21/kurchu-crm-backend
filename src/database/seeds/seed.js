@@ -15,6 +15,23 @@ const SALT_ROUNDS = 12;
 async function main() {
   console.log('🌱 Seeding database...\n');
 
+  // ─── Clean Existing Data ──────────────────
+  console.log('🧹 Cleaning database tables to prevent ID mismatches...');
+  await prisma.notificationSetting.deleteMany({});
+  await prisma.alert.deleteMany({});
+  await prisma.payment.deleteMany({});
+  await prisma.invoice.deleteMany({});
+  await prisma.booking.deleteMany({});
+  await prisma.followUp.deleteMany({});
+  await prisma.note.deleteMany({});
+  await prisma.itinerary.deleteMany({});
+  await prisma.lead.deleteMany({});
+  await prisma.service.deleteMany({});
+  await prisma.leadSource.deleteMany({});
+  await prisma.user.deleteMany({});
+  await prisma.company.deleteMany({});
+  console.log('🧹 Database cleaned successfully.\n');
+
   // ─── Company ─────────────────────────────
   const company = await prisma.company.upsert({
     where: { email: 'admin@kurchucrm.com' },
@@ -69,6 +86,7 @@ async function main() {
     where: { email: 'agent@kurchucrm.com' },
     update: {},
     create: {
+      id: 'cmqs1ywv200021455ssy0r8oz', // Aligns with hardcoded ID in Flutter dashboard
       email: 'agent@kurchucrm.com',
       password: agentPassword,
       firstName: 'Sales',
@@ -94,7 +112,11 @@ async function main() {
     const source = await prisma.leadSource.upsert({
       where: { companyId_name: { companyId: company.id, name } },
       update: {},
-      create: { name, companyId: company.id },
+      create: {
+        id: name === 'Website' ? 'cmqs1yxc0000614552yrasd3s' : undefined, // Aligns with hardcoded ID in Flutter dashboard
+        name,
+        companyId: company.id,
+      },
     });
     leadSources.push(source);
   }

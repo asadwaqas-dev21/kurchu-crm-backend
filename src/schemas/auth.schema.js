@@ -33,10 +33,11 @@ const updateProfileSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters').trim().optional(),
   lastName: z.string().min(2, 'Last name must be at least 2 characters').trim().optional(),
   phone: z
-    .string()
-    .regex(/^\+?[0-9\-\s()]+$/, 'Invalid phone number format')
-    .optional()
-    .nullable(),
+    .preprocess((val) => (val === '' ? null : val), z
+      .string()
+      .regex(/^\+?[0-9\-\s()]+$/, 'Invalid phone number format')
+      .optional()
+      .nullable()),
 });
 
 const forgotPasswordSchema = z.object({
