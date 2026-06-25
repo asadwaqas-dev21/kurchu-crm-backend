@@ -27,6 +27,42 @@ const redactSensitive = winston.format((info) => {
 });
 
 /** Logger instance */
+const transports = [
+  // Console transport (colorized in development)
+  new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.printf(({ timestamp, level, message, service, ...meta }) => {
+        const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+        return `${timestamp} [${service}] ${level}: ${message}${metaStr}`;
+      })
+    ),
+  }),
+];
+
+// File logging is disabled in Serverless environments (like Vercel) where write access to filesystem is restricted
+if (!process.env.VERCEL) {
+  // Error log file
+  transports.push(
+    new winston.transports.File({
+      filename: path.join(LOG_DIR, 'error.log'),
+      level: 'error',
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+    })
+  );
+
+  // Combined log file
+  transports.push(
+    new winston.transports.File({
+      filename: path.join(LOG_DIR, 'combined.log'),
+      maxsize: 5242880,
+      maxFiles: 5,
+    })
+  );
+}
+
+/** Logger instance */
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'debug',
   format: winston.format.combine(
@@ -36,33 +72,7 @@ const logger = winston.createLogger({
     winston.format.json()
   ),
   defaultMeta: { service: 'kurchu-crm' },
-  transports: [
-    // Console transport (colorized in development)
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(({ timestamp, level, message, service, ...meta }) => {
-          const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
-          return `${timestamp} [${service}] ${level}: ${message}${metaStr}`;
-        })
-      ),
-    }),
-
-    // Error log file
-    new winston.transports.File({
-      filename: path.join(LOG_DIR, 'error.log'),
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-
-    // Combined log file
-    new winston.transports.File({
-      filename: path.join(LOG_DIR, 'combined.log'),
-      maxsize: 5242880,
-      maxFiles: 5,
-    }),
-  ],
+  transports,
 });
 
 // Suppress logs during tests
