@@ -28,11 +28,9 @@ const buildCorsOptions = () => {
         return callback(null, true);
       }
 
-      // In development, allow localhost on any port
-      if (process.env.NODE_ENV === 'development') {
-        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-          return callback(null, true);
-        }
+      // Allow localhost on any port for testing and development of client apps
+      if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('::1')) {
+        return callback(null, true);
       }
 
       callback(new Error('Not allowed by CORS'));
