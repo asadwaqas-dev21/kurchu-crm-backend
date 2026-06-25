@@ -28,6 +28,7 @@ async function main() {
   await prisma.lead.deleteMany({});
   await prisma.service.deleteMany({});
   await prisma.leadSource.deleteMany({});
+  await prisma.document.deleteMany({});
   await prisma.user.deleteMany({});
   await prisma.company.deleteMany({});
   console.log('🧹 Database cleaned successfully.\n');
