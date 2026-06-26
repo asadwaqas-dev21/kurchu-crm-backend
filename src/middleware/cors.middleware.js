@@ -28,8 +28,8 @@ const buildCorsOptions = () => {
         return callback(null, true);
       }
 
-      // Allow localhost on any port for testing and development of client apps
-      if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('::1')) {
+      // Allow localhost and Netlify domains on any port for testing and development of client apps
+      if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('::1') || origin.includes('netlify.app')) {
         return callback(null, true);
       }
 
